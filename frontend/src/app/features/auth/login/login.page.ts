@@ -1,4 +1,5 @@
-import { computed, ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { computed, ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
@@ -43,9 +44,10 @@ import { AuthFacade } from '../services/auth.facade';
   templateUrl: './login.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LoginPageComponent {
+export class LoginPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly authFacade = inject(AuthFacade);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly copy = LOGIN_SCREEN_COPY;
   protected readonly featureItems = LOGIN_FEATURE_ITEMS;
@@ -69,6 +71,14 @@ export class LoginPageComponent {
   );
 
   protected readonly hasSocialOptions = computed(() => this.socialOptions.some((option) => option.enabled));
+
+  ngOnInit(): void {
+    const query = this.route.snapshot.queryParamMap;
+    const auth = query.get('auth');
+    const ticket = query.get('ticket');
+    const code = query.get('code');
+    this.authFacade.processGoogleCallback(ticket, auth, code);
+  }
 
   protected togglePasswordVisibility(): void {
     this.showPassword.update((value) => !value);
